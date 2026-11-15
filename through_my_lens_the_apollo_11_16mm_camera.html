@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Through My Lens: The Apollo 11 16mm Camera</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Newsreader (Editorial Serif) & JetBrains Mono (Telemetry Monospace) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#07090e',
+            panel: '#0d111a',
+            amberGlow: '#f59e0b',
+            parchment: '#fde68a',
+            telemetryCyan: '#38bdf8',
+          },
+          fontFamily: {
+            serif: ['Newsreader', 'Georgia', 'serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* Custom Retro-NASA & 16mm Viewfinder Styling */
+    body {
+      background-color: #07090e;
+      color: #f3f4f6;
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(245, 158, 11, 0.04) 0%, transparent 45%),
+        radial-gradient(circle at 85% 80%, rgba(56, 189, 248, 0.04) 0%, transparent 45%),
+        linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 40px 40px, 40px 40px;
+    }
+
+    /* Film Sprocket Strip Effect */
+    .film-sprockets {
+      background-image: radial-gradient(circle, #07090e 4px, transparent 4.5px);
+      background-size: 20px 24px;
+      background-position: center;
+    }
+
+    /* Subtle CRT / Film Grain Scanline Overlay */
+    .scanlines {
+      background: linear-gradient(
+        rgba(18, 16, 16, 0) 50%, 
+        rgba(0, 0, 0, 0.25) 50%
+      );
+      background-size: 100% 4px;
+    }
+
+    /* Blinking REC Indicator */
+    @keyframes recPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.25; }
+    }
+    .rec-dot {
+      animation: recPulse 1.8s infinite ease-in-out;
+    }
+
+    /* Chapter Fade Transition */
+    @keyframes frameAdvance {
+      0% {
+        opacity: 0;
+        transform: translateY(8px);
+        filter: brightness(1.3);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: brightness(1);
+      }
+    }
+    .animate-frame {
+      animation: frameAdvance 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #07090e;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1f2937;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #f59e0b;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between antialiased selection:bg-amber-500/30 selection:text-amber-200">
+
+  <!-- TOP MISSION CONTROL HEADER -->
+  <header class="sticky top-0 z-40 bg-obsidian/90 backdrop-blur-md border-b border-amber-500/20">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      <!-- Brand / Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-amber-500/10 border border-amber-500/40 flex items-center justify-center text-amber-400 font-mono text-xs font-bold tracking-tighter shadow-inner">
+          16MM
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-400/90">NASA Space Apps // AS-11 Archive</span>
+          </div>
+          <h1 class="font-serif text-base sm:text-lg font-semibold text-parchment tracking-wide leading-tight">
+            Through My Lens: The Apollo 11 16mm Camera
+          </h1>
+        </div>
+      </div>
+
+      <!-- Controls: Audio Toggle & Reading Mode Toggle -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button
+          id="audioToggleBtn"
+          type="button"
+          onclick="toggleAudio()"
+          class="px-3 py-2 rounded-lg border border-slate-700/80 bg-panel/90 hover:border-amber-500/50 text-xs font-mono text-slate-300 hover:text-amber-300 transition flex items-center gap-2 cursor-pointer"
+          title="Toggle synthesized 16mm mechanical shutter click on chapter change"
+        >
+          <span id="audioIndicator" class="w-2 h-2 rounded-full bg-slate-500"></span>
+          <span id="audioLabel">SHUTTER SFX: OFF</span>
+        </button>
+
+        <button
+          id="modeToggleBtn"
+          type="button"
+          onclick="toggleReadingMode()"
+          class="px-3 py-2 rounded-lg border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-xs font-mono text-amber-300 transition flex items-center gap-2 cursor-pointer"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h10" />
+          </svg>
+          <span id="modeLabel">FULL STORY MODE</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- CLICKABLE MISSION TIMELINE PROGRESS BAR (Visible in Interactive Viewfinder Mode) -->
+    <nav id="timelineNav" aria-label="Mission Timeline" class="border-t border-slate-800/80 bg-panel/60">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-2.5 overflow-x-auto">
+        <div id="timelineSteps" class="grid grid-cols-6 min-w-[640px] gap-2">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- MAIN CONTENT AREA -->
+  <main class="flex-grow max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-10">
+
+    <!-- MODE 1: INTERACTIVE CHAPTER VIEWFINDER -->
+    <section id="interactiveView" class="space-y-6">
+      <div id="chapterContainer" class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        
+        <!-- LEFT COLUMN: 16MM VIEWFINDER SVG & TELEMETRY READOUT (5 cols on lg) -->
+        <div class="lg:col-span-5 space-y-4">
+          <!-- Viewfinder Housing -->
+          <div class="rounded-2xl bg-panel border border-amber-500/30 shadow-2xl overflow-hidden relative">
+            <!-- Top Viewfinder Status Strip -->
+            <div class="px-4 py-2.5 bg-black/60 border-b border-slate-800 flex items-center justify-between font-mono text-[11px]">
+              <div class="flex items-center gap-2">
+                <span id="recDot" class="w-2.5 h-2.5 rounded-full bg-red-500 rec-dot"></span>
+                <span id="recStatus" class="text-slate-300 tracking-wider">STOWED // L2</span>
+              </div>
+              <span id="frameRateBadge" class="text-amber-400 font-semibold">00 FPS</span>
+            </div>
+
+            <!-- Viewfinder Canvas with Film Sprockets -->
+            <div class="relative flex items-stretch bg-[#05070b]">
+              <!-- Left Sprocket Strip -->
+              <div class="w-5 sm:w-6 bg-slate-900/90 border-r border-slate-800 film-sprockets shrink-0"></div>
+              
+              <!-- Center Optical Frame -->
+              <div class="relative flex-grow aspect-[4/3] flex items-center justify-center p-3 overflow-hidden">
+                <!-- Optical Crosshair Reticle Overlay -->
+                <div class="pointer-events-none absolute inset-3 border border-amber-500/20 rounded-lg">
+                  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-px h-2.5 bg-amber-400/50"></div>
+                  <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-px h-2.5 bg-amber-400/50"></div>
+                  <div class="absolute left-0 top-1/2 -translate-y-1/2 h-px w-2.5 bg-amber-400/50"></div>
+                  <div class="absolute right-0 top-1/2 -translate-y-1/2 h-px w-2.5 bg-amber-400/50"></div>
+                </div>
+
+                <!-- Dynamic Inline SVG Diagram -->
+                <div id="svgViewport" class="w-full h-full flex items-center justify-center"></div>
+
+                <!-- Subtle Scanlines -->
+                <div class="pointer-events-none absolute inset-0 scanlines opacity-40"></div>
+              </div>
+
+              <!-- Right Sprocket Strip -->
+              <div class="w-5 sm:w-6 bg-slate-900/90 border-l border-slate-800 film-sprockets shrink-0"></div>
+            </div>
+
+            <!-- Bottom Viewfinder Caption -->
+            <div class="px-4 py-2 bg-black/60 border-t border-slate-800 flex items-center justify-between font-mono text-[10px] text-slate-400">
+              <span>MAURER 16MM DAC // 10MM LENS</span>
+              <span id="missionClock" class="text-amber-300/90">GET 000:00:00</span>
+            </div>
+          </div>
+
+          <!-- NASA TELEMETRY DATA CARD -->
+          <div class="rounded-2xl bg-panel/90 border border-slate-800 p-4 sm:p-5 shadow-lg">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5 mb-3">
+              <span class="font-mono text-xs uppercase tracking-widest text-amber-400 flex items-center gap-2">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Telemetry Log
+              </span>
+              <span id="telemetryTag" class="font-mono text-[11px] text-slate-400">LOG 01/06</span>
+            </div>
+            <dl id="telemetryGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 font-mono text-xs">
+              <!-- Populated dynamically -->
+            </dl>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: STORY NARRATIVE & CHAPTER NAVIGATION (7 cols on lg) -->
+        <div class="lg:col-span-7 flex flex-col justify-between rounded-2xl bg-panel/80 border border-slate-800/90 p-6 sm:p-8 lg:p-10 shadow-2xl min-h-[460px]">
+          <div>
+            <!-- Chapter Eyebrow -->
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <span id="chapterNumber" class="font-mono text-xs uppercase tracking-[0.2em] text-amber-400">
+                CHAPTER 01 // LAUNCH
+              </span>
+              <span id="chapterDate" class="font-mono text-xs text-slate-400 bg-slate-900/90 px-2.5 py-1 rounded-md border border-slate-800">
+                July 16, 1969
+              </span>
+            </div>
+
+            <!-- Chapter Title -->
+            <h2 id="chapterTitle" class="font-serif text-2xl sm:text-3xl lg:text-4xl font-semibold text-parchment mb-6 leading-tight">
+              Built From Failure
+            </h2>
+
+            <!-- Story Prose -->
+            <div id="chapterProse" class="font-serif text-lg sm:text-[19px] leading-[1.85] text-slate-200 space-y-5">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <!-- Bottom Navigation Bar -->
+          <div class="mt-8 pt-6 border-t border-slate-800/90 flex items-center justify-between gap-4">
+            <button
+              id="prevBtn"
+              type="button"
+              onclick="changeChapter(-1)"
+              class="px-4 py-3 rounded-xl border border-slate-700 bg-slate-900/80 hover:border-amber-500/50 hover:text-amber-300 disabled:opacity-35 disabled:pointer-events-none font-mono text-xs sm:text-sm text-slate-200 transition flex items-center gap-2 cursor-pointer"
+            >
+              <span>&larr;</span>
+              <span>PREVIOUS</span>
+            </button>
+
+            <span class="hidden sm:inline-block font-mono text-[11px] text-slate-500">
+              USE &larr; / &rarr; KEYS TO ADVANCE FILM
+            </span>
+
+            <button
+              id="nextBtn"
+              type="button"
+              onclick="changeChapter(1)"
+              class="px-5 py-3 rounded-xl border border-amber-500/50 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 font-mono text-xs sm:text-sm font-semibold transition flex items-center gap-2 cursor-pointer shadow-md shadow-amber-500/5"
+            >
+              <span id="nextBtnLabel">NEXT CHAPTER</span>
+              <span>&rarr;</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODE 2: UNINTERRUPTED FULL STORY READING VIEW -->
+    <section id="fullStoryView" class="hidden max-w-3xl mx-auto">
+      <div class="rounded-2xl bg-panel/90 border border-amber-500/25 p-6 sm:p-10 lg:p-12 shadow-2xl">
+        <div class="border-b border-slate-800 pb-6 mb-8 text-center">
+          <p class="font-mono text-xs uppercase tracking-[0.25em] text-amber-400 mb-2">
+            Complete Uninterrupted Narrative // Apollo 11 16mm DAC
+          </p>
+          <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-parchment">
+            Through My Lens
+          </h2>
+          <p class="font-mono text-xs text-slate-400 mt-2">
+            First-Person Perspective of the Lunar Module Data Acquisition Camera (July 16–22, 1969)
+          </p>
+        </div>
+
+        <article id="fullStoryContent" class="space-y-10 font-serif text-lg sm:text-[19px] leading-[1.9] text-slate-200">
+          <!-- Populated dynamically with all chapters -->
+        </article>
+
+        <div class="mt-10 pt-6 border-t border-slate-800 flex justify-center">
+          <button
+            type="button"
+            onclick="toggleReadingMode()"
+            class="px-5 py-3 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 font-mono text-xs text-amber-300 transition cursor-pointer"
+          >
+            RETURN TO INTERACTIVE VIEWFINDER MODE
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-800/80 bg-obsidian/90 py-4 px-4 sm:px-6">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 font-mono text-[11px] text-slate-500">
+      <div>
+        ARTIFACT: J.A. MAURER 16MM DATA ACQUISITION CAMERA // APOLLO 11 LM-5 "EAGLE"
+      </div>
+      <div>
+        HISTORICAL TELEMETRY: NASA APOLLO 11 FLIGHT JOURNAL &amp; NSSDCA ARCHIVE
+      </div>
+    </div>
+  </footer>
+
+  <!-- APPLICATION LOGIC & INLINE SVG ARTWORK -->
+  <script>
+    // Story Data Array containing all 6 chapters, prose, telemetry, and custom SVG illustrations
+    const chapters = [
+      {
+        id: 1,
+        shortLabel: "01. LAUNCH",
+        chapterTag: "CHAPTER 01 // LAUNCH",
+        date: "July 16, 1969 — 13:32 UTC",
+        title: "Built From Failure",
+        recStatus: "STOWED // LOCKER L2",
+        recActive: false,
+        fps: "00 FPS",
+        missionClock: "GET 000:00:00",
+        prose: [
+          "I’ve heard that men fail over and over. I wasn’t there to see it, but I was built out of it: every burned test, every rocket that never left the pad, every lesson somebody paid for. By 1969, just 66 years after the first airplane took flight, those lessons had finally added up to something. I was part of that something.",
+          "On the morning of July 16, I was locked in total darkness, all by myself. I couldn’t see a thing in that pitch black. Then it began. The ground started shaking, and I assumed this must be how an earthquake feels. I felt us lifting, and I knew we were leaving home. The raw power of the Saturn V pressed down on me, pinning me inside my locker. When the engines finally cut off, it felt peaceful, exciting and terrifying all at once. I wanted so badly to look out and see the bright blue curve of Earth. I couldn’t."
+        ],
+        telemetry: [
+          { label: "LAUNCH TIMESTAMP", value: "July 16, 1969, 13:32 UTC" },
+          { label: "LAUNCH VEHICLE", value: "Saturn V (SA-506)" },
+          { label: "CAMERA LOCATION", value: "LM-5 Stowage Locker L2" },
+          { label: "SYSTEM STATUS", value: "Stowed / Unpowered" }
+        ],
+        svg: `
+          <svg viewBox="0 0 360 270" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <!-- Background Grid -->
+            <g stroke="#1e293b" stroke-width="0.6">
+              <line x1="0" y1="54" x2="360" y2="54" />
+              <line x1="0" y1="135" x2="360" y2="135" />
+              <line x1="0" y1="216" x2="360" y2="216" />
+              <line x1="90" y1="0" x2="90" y2="270" />
+              <line x1="180" y1="0" x2="180" y2="270" />
+              <line x1="270" y1="0" x2="270" y2="270" />
+            </g>
+            <!-- Saturn V SLA Fairing Cone -->
+            <polygon points="145,35 215,35 245,235 115,235" fill="#0f172a" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 3" />
+            <!-- Command/Service Module Top Cap -->
+            <polygon points="165,12 195,12 215,35 145,35" fill="#1e293b" stroke="#94a3b8" stroke-width="1.5" />
+            <!-- Lunar Module Stowed Inside SLA -->
+            <g transform="translate(180, 140)">
+              <!-- Ascent Stage -->
+              <polygon points="-28,-48 28,-48 36,-15 -36,-15" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5" />
+              <!-- Descent Stage -->
+              <rect x="-40" y="-12" width="80" height="36" rx="3" fill="#172033" stroke="#f59e0b" stroke-width="1.5" />
+              <!-- Folded Landing Legs -->
+              <line x1="-40" y1="0" x2="-52" y2="48" stroke="#94a3b8" stroke-width="2" />
+              <line x1="40" y1="0" x2="52" y2="48" stroke="#94a3b8" stroke-width="2" />
+              <!-- Highlighted Locker L2 -->
+              <rect x="8" y="-40" width="16" height="14" rx="2" fill="#f59e0b" fill-opacity="0.35" stroke="#fde68a" stroke-width="1.5" />
+              <circle cx="16" cy="-33" r="2.5" fill="#fde68a" />
+            </g>
+            <!-- Callout Annotation -->
+            <polyline points="196,107 248,82 335,82" fill="none" stroke="#f59e0b" stroke-width="1.2" />
+            <text x="252" y="76" fill="#fde68a" font-family="JetBrains Mono, monospace" font-size="9" font-weight="bold">LOCKER L2 [DAC]</text>
+            <text x="252" y="94" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="8">DARK / UNPOWERED</text>
+            <!-- Thrust Vibration Arrows at Base -->
+            <g stroke="#f59e0b" stroke-width="1.5" opacity="0.8">
+              <line x1="145" y1="258" x2="145" y2="240" />
+              <polyline points="141,245 145,239 149,245" fill="none" />
+              <line x1="180" y1="262" x2="180" y2="240" />
+              <polyline points="176,245 180,239 184,245" fill="none" />
+              <line x1="215" y1="258" x2="215" y2="240" />
+              <polyline points="211,245 215,239 219,245" fill="none" />
+            </g>
+            <text x="18" y="25" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="8.5">SLA FAIRING // SA-506</text>
+          </svg>
+        `
+      },
+      {
+        id: 2,
+        shortLabel: "02. FIRST LIGHT",
+        chapterTag: "CHAPTER 02 // UNDOCKING",
+        date: "Day 3 & July 20, 17:44 UT",
+        title: "First Light",
+        recStatus: "MOUNTED // R-WINDOW",
+        recActive: true,
+        fps: "01 FPS",
+        missionClock: "GET 100:12:00",
+        prose: [
+          "I didn’t meet Neil or Buzz until days later. When the hatch finally opened and they floated into the Lunar Module, the batteries hummed awake and the tiny cabin came alive around me. Neil pulled me from my compartment and mounted me in Buzz’s right-hand triangular window. For a 16mm camera, there was no better seat in the house.",
+          "For the first time since leaving Earth, my lens had a view, and the brightness nearly overwhelmed me. There was no blue sky and no scattered clouds. There was only an endless black void, and beneath us a blinding, silver-gray world.",
+          "On July 20, the cabin filled with quiet focus. Switches clicked, pumps hummed, and the air smelled faintly of metal and electronics. Then came a sharp clunk as the docking latches let go. Through my glass, I watched Columbia and Michael Collins drift backward into the dark. Our little gold-foil insect of a spacecraft was on its own."
+        ],
+        telemetry: [
+          { label: "UNDOCKING TIME", value: "July 20, 17:44:00 UT" },
+          { label: "LM TOTAL MASS", value: "15,103 kg (Fueled)" },
+          { label: "CABIN VOLUME", value: "6.65 m³ Pressurized" },
+          { label: "POWER SOURCE", value: "6 Silver-Zinc Batteries" }
+        ],
+        svg: `
+          <svg viewBox="0 0 360 270" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <!-- Starfield -->
+            <g fill="#e2e8f0" opacity="0.7">
+              <circle cx="48" cy="40" r="1" />
+              <circle cx="95" cy="28" r="1.3" />
+              <circle cx="290" cy="45" r="1" />
+              <circle cx="315" cy="85" r="1.2" />
+              <circle cx="65" cy="110" r="0.9" />
+            </g>
+            <!-- Curved Bright Lunar Horizon -->
+            <path d="M 10,235 Q 180,150 350,235 L 350,270 L 10,270 Z" fill="#1e293b" stroke="#cbd5e1" stroke-width="1.5" />
+            <!-- Craters on Horizon -->
+            <ellipse cx="120" cy="212" rx="18" ry="5" fill="none" stroke="#64748b" stroke-width="1" />
+            <ellipse cx="235" cy="218" rx="24" ry="6" fill="none" stroke="#64748b" stroke-width="1" />
+            <ellipse cx="180" cy="235" rx="14" ry="4" fill="none" stroke="#64748b" stroke-width="1" />
+
+            <!-- CSM Columbia Drifting Away -->
+            <g transform="translate(225, 82) rotate(-14)">
+              <!-- Service Module Cylinder -->
+              <rect x="-24" y="-12" width="32" height="24" fill="#334155" stroke="#94a3b8" stroke-width="1.2" />
+              <!-- Engine Bell -->
+              <polygon points="-24,-7 -36,-11 -36,11 -24,7" fill="#1e293b" stroke="#94a3b8" stroke-width="1.2" />
+              <!-- Command Module Cone -->
+              <polygon points="8,-12 24,-3 24,3 8,12" fill="#475569" stroke="#e2e8f0" stroke-width="1.2" />
+              <!-- Docking Probe -->
+              <line x1="24" y1="0" x2="31" y2="0" stroke="#f59e0b" stroke-width="1.5" />
+            </g>
+            <text x="195" y="54" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="8.5">CSM COLUMBIA</text>
+
+            <!-- Triangular LM Window Frame Overlay -->
+            <polygon points="35,25 325,25 265,245 65,245" fill="none" stroke="#f59e0b" stroke-width="2.5" />
+            <!-- NASA Window Etched Alignment Marks -->
+            <g stroke="#f59e0b" stroke-width="1" opacity="0.75">
+              <line x1="160" y1="125" x2="200" y2="125" />
+              <line x1="180" y1="105" x2="180" y2="145" />
+              <circle cx="180" cy="125" r="14" fill="none" />
+            </g>
+            <text x="45" y="42" fill="#fde68a" font-family="JetBrains Mono, monospace" font-size="8.5">LPD RIGHT WINDOW</text>
+          </svg>
+        `
+      },
+      {
+        id: 3,
+        shortLabel: "03. THE DROP",
+        chapterTag: "CHAPTER 03 // POWERED DESCENT",
+        date: "July 20, 19:08 – 20:05 UT",
+        title: "The Drop",
+        recStatus: "REC // PDI ACTIVE",
+        recActive: true,
+        fps: "06 FPS",
+        missionClock: "GET 102:33:05",
+        prose: [
+          "Neil turned Eagle slowly so Michael could check our four landing legs from afar. Then came a short engine burn, and I heard Neil and Buzz call out numbers to each other. We were skimming just 14.5 kilometers above the jagged craters. They stood strapped upright with no seats, like pilots of a ship that was never meant to be comfortable.",
+          "At 20:05 UT, the descent engine roared to life beneath us. My shutter clicked awake, six frames every second, ready to catch every heartbeat of the fall. The guidance computer brought us down while Neil steered us past boulders, and the voices in the cabin stayed calm and clipped. Then I heard the number nobody wanted to hear: less than thirty seconds of fuel left."
+        ],
+        telemetry: [
+          { label: "PERILUNE ALTITUDE", value: "14.5 km Above Surface" },
+          { label: "DESCENT ENGINE", value: "45,000 N Deep-Throttling" },
+          { label: "BURN DURATION", value: "756.3 Seconds" },
+          { label: "CAMERA FRAME RATE", value: "6 Frames / Sec" }
+        ],
+        svg: `
+          <svg viewBox="0 0 360 270" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <!-- Altitude Grid Lines -->
+            <g stroke="#1e293b" stroke-width="0.8" stroke-dasharray="3 3">
+              <line x1="25" y1="50" x2="335" y2="50" />
+              <line x1="25" y1="130" x2="335" y2="130" />
+              <line x1="25" y1="210" x2="335" y2="210" />
+            </g>
+            <text x="28" y="45" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="8">ALT: 14.5 KM (PERILUNE)</text>
+            <text x="28" y="125" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="8">P64 / P66 MANUAL OVERRIDE</text>
+
+            <!-- Lunar Surface Profile with Boulder Field -->
+            <path d="M 15,225 L 140,225 L 155,233 L 175,233 L 190,225 L 345,225 L 345,260 L 15,260 Z" fill="#1e293b" stroke="#94a3b8" stroke-width="1.5" />
+            <!-- West Crater & Boulders -->
+            <polygon points="152,225 158,217 165,225" fill="#475569" stroke="#cbd5e1" stroke-width="1" />
+            <polygon points="168,225 173,219 179,225" fill="#475569" stroke="#cbd5e1" stroke-width="1" />
+            <text x="135" y="248" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="8">BOULDER FIELD</text>
+
+            <!-- Powered Descent Trajectory Curve -->
+            <path d="M 45,55 C 145,58 195,120 275,215" fill="none" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 3" />
+
+            <!-- LM Icon Mid-Descent with Thrust Vector -->
+            <g transform="translate(185, 122) rotate(32)">
+              <rect x="-10" y="-12" width="20" height="16" rx="2" fill="#0f172a" stroke="#fde68a" stroke-width="1.5" />
+              <line x1="-10" y1="4" x2="-15" y2="12" stroke="#fde68a" stroke-width="1.5" />
+              <line x1="10" y1="4" x2="15" y2="12" stroke="#fde68a" stroke-width="1.5" />
+              <!-- Thrust Plume -->
+              <polygon points="-5,6 5,6 0,26" fill="#f59e0b" opacity="0.85" />
+            </g>
+
+            <!-- Target Landing Zone -->
+            <circle cx="275" cy="222" r="5" fill="none" stroke="#38bdf8" stroke-width="1.5" />
+            <text x="242" y="206" fill="#38bdf8" font-family="JetBrains Mono, monospace" font-size="8">TRANQUILLITATIS</text>
+
+            <!-- Fuel Warning Indicator -->
+            <rect x="215" y="22" width="122" height="22" rx="4" fill="#451a03" stroke="#f59e0b" stroke-width="1" />
+            <text x="224" y="36" fill="#fde68a" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="bold">FUEL: &lt; 30 SEC</text>
+          </svg>
+        `
+      },
+      {
+        id: 4,
+        shortLabel: "04. CONTACT",
+        chapterTag: "CHAPTER 04 // TOUCHDOWN",
+        date: "July 20, 1969 — 20:17:40 UT",
+        title: "Contact Light",
+        recStatus: "ENGINE STOP // LANDED",
+        recActive: true,
+        fps: "12 FPS",
+        missionClock: "GET 102:45:40",
+        prose: [
+          "Then the roar vanished into a sudden, heavy stillness. A blue light blinked on the console: Contact Light. Outside my window, the dust we’d kicked up didn’t billow or float. Without air to carry it, every grain streaked outward in clean, silent arcs. At 20:17 UT, we were down."
+        ],
+        telemetry: [
+          { label: "TOUCHDOWN UTC", value: "20:17:40 UT (July 20)" },
+          { label: "COORDINATES", value: "0.67416° N, 23.47314° E" },
+          { label: "LANDING SITE", value: "Mare Tranquillitatis" },
+          { label: "FOOTPAD SPAN", value: "9.4 m (1.5 m Clearance)" }
+        ],
+        svg: `
+          <svg viewBox="0 0 360 270" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <!-- Sea of Tranquility Horizon -->
+            <line x1="15" y1="215" x2="345" y2="215" stroke="#94a3b8" stroke-width="1.5" />
+            <rect x="15" y="215" width="330" height="45" fill="#1e293b" opacity="0.6" />
+
+            <!-- Ballistic Vacuum Dust Streaks (Clean Parabolic Arcs) -->
+            <g fill="none" stroke="#cbd5e1" stroke-width="1" stroke-dasharray="3 3" opacity="0.8">
+              <path d="M 145,215 Q 95,185 35,215" />
+              <path d="M 155,215 Q 115,195 75,215" />
+              <path d="M 215,215 Q 265,185 325,215" />
+              <path d="M 205,215 Q 245,195 285,215" />
+            </g>
+
+            <!-- Lunar Module Eagle Landed -->
+            <g transform="translate(180, 155)">
+              <!-- Ascent Stage -->
+              <polygon points="-24,-45 24,-45 32,-15 -32,-15" fill="#1e293b" stroke="#fde68a" stroke-width="1.5" />
+              <!-- S-Band & Rendezvous Antennas -->
+              <line x1="0" y1="-45" x2="0" y2="-58" stroke="#94a3b8" stroke-width="1.5" />
+              <path d="M -8,-58 Q 0,-52 8,-58" fill="none" stroke="#fde68a" stroke-width="1.5" />
+              <!-- Descent Stage Octagon -->
+              <rect x="-36" y="-12" width="72" height="32" rx="2" fill="#292524" stroke="#f59e0b" stroke-width="1.5" />
+              <!-- Four Landing Struts & Footpads -->
+              <line x1="-36" y1="5" x2="-58" y2="58" stroke="#cbd5e1" stroke-width="2" />
+              <line x1="-36" y1="18" x2="-52" y2="42" stroke="#94a3b8" stroke-width="1.2" />
+              <ellipse cx="-58" cy="59" rx="8" ry="2.5" fill="#f59e0b" />
+
+              <line x1="36" y1="5" x2="58" y2="58" stroke="#cbd5e1" stroke-width="2" />
+              <line x1="36" y1="18" x2="52" y2="42" stroke="#94a3b8" stroke-width="1.2" />
+              <ellipse cx="58" cy="59" rx="8" ry="2.5" fill="#f59e0b" />
+
+              <!-- Center Front Leg & Lunar Contact Probe -->
+              <line x1="0" y1="20" x2="0" y2="58" stroke="#94a3b8" stroke-width="1.5" />
+              <ellipse cx="0" cy="59" rx="7" ry="2" fill="#f59e0b" />
+            </g>
+
+            <!-- Blue Contact Light Indicator Badge -->
+            <g transform="translate(225, 24)">
+              <rect x="0" y="0" width="112" height="24" rx="5" fill="#0c4a6e" stroke="#38bdf8" stroke-width="1.5" />
+              <circle cx="14" cy="12" r="4.5" fill="#38bdf8" />
+              <text x="25" y="15" fill="#e0f2fe" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="bold">CONTACT LIGHT</text>
+            </g>
+            <text x="128" y="242" fill="#fde68a" font-family="JetBrains Mono, monospace" font-size="8.5">SPAN: 9.4M // CLEARANCE: 1.5M</text>
+          </svg>
+        `
+      },
+      {
+        id: 5,
+        shortLabel: "05. ONE STEP",
+        chapterTag: "CHAPTER 05 // LUNAR EVA",
+        date: "July 21, 1969 — 02:56:15 UT",
+        title: "One Small Step",
+        recStatus: "REC // EVA SURFACE",
+        recActive: true,
+        fps: "01 FPS",
+        missionClock: "GET 109:24:15",
+        prose: [
+          "Hours later, the hatch swung open to the vacuum. I slowed to one frame per second, patient now, and watched Neil climb down the nine-rung ladder. He paused on the footpad and pressed his boot into soil that hadn’t been touched for four billion years. I watched them set up their instruments, unveil a plaque on the landing strut, and pack 21.55 kilograms of lunar rock into their boxes. I had seen men fail before, in the stories that built me. I had seen them dream. But through my lens, I watched them finally arrive."
+        ],
+        telemetry: [
+          { label: "FIRST STEP UTC", value: "02:56:15 UT (July 21)" },
+          { label: "LUNAR SAMPLES", value: "21.55 kg Rock & Core Soil" },
+          { label: "EXPERIMENTS", value: "EASEP Seismometer & Laser" },
+          { label: "CAMERA FRAME RATE", value: "1 Frame / Sec (Time-Lapse)" }
+        ],
+        svg: `
+          <svg viewBox="0 0 360 270" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <!-- Lunar Surface Ground -->
+            <path d="M 15,215 Q 180,208 345,215 L 345,260 L 15,260 Z" fill="#1e293b" stroke="#94a3b8" stroke-width="1.5" />
+
+            <!-- LM Forward Strut & 9-Rung Ladder -->
+            <g transform="translate(115, 35)">
+              <!-- Porch / Egress Platform -->
+              <rect x="-25" y="0" width="55" height="10" fill="#334155" stroke="#fde68a" stroke-width="1.2" />
+              <!-- Main Strut -->
+              <line x1="0" y1="10" x2="0" y2="178" stroke="#cbd5e1" stroke-width="4" />
+              <!-- Ladder Rails -->
+              <line x1="-10" y1="12" x2="-10" y2="145" stroke="#f59e0b" stroke-width="1.5" />
+              <line x1="10" y1="12" x2="10" y2="145" stroke="#f59e0b" stroke-width="1.5" />
+              <!-- 9 Rungs -->
+              <g stroke="#fde68a" stroke-width="1.5">
+                <line x1="-10" y1="22" x2="10" y2="22" />
+                <line x1="-10" y1="36" x2="10" y2="36" />
+                <line x1="-10" y1="50" x2="10" y2="50" />
+                <line x1="-10" y1="64" x2="10" y2="64" />
+                <line x1="-10" y1="78" x2="10" y2="78" />
+                <line x1="-10" y1="92" x2="10" y2="92" />
+                <line x1="-10" y1="106" x2="10" y2="106" />
+                <line x1="-10" y1="120" x2="10" y2="120" />
+                <line x1="-10" y1="134" x2="10" y2="134" />
+              </g>
+              <!-- Plaque on Strut -->
+              <rect x="-7" y="82" width="14" height="10" fill="#fde68a" stroke="#0f172a" stroke-width="0.8" />
+              <!-- Footpad -->
+              <ellipse cx="0" cy="180" rx="22" ry="5" fill="#f59e0b" stroke="#fde68a" stroke-width="1" />
+            </g>
+
+            <!-- Iconic Bootprint Detail Inset -->
+            <g transform="translate(245, 120)">
+              <rect x="-52" y="-58" width="104" height="116" rx="8" fill="#0f172a" stroke="#f59e0b" stroke-width="1.2" stroke-dasharray="3 2" />
+              <text x="-40" y="-42" fill="#fde68a" font-family="JetBrains Mono, monospace" font-size="8">REGOLITH PRINT</text>
+              <!-- Boot Sole Outline -->
+              <rect x="-18" y="-26" width="36" height="64" rx="14" fill="#334155" stroke="#cbd5e1" stroke-width="1.5" />
+              <!-- Horizontal Tread Ribs -->
+              <g stroke="#0f172a" stroke-width="2">
+                <line x1="-14" y1="-12" x2="14" y2="-12" />
+                <line x1="-16" y1="-2" x2="16" y2="-2" />
+                <line x1="-16" y1="8" x2="16" y2="8" />
+                <line x1="-15" y1="18" x2="15" y2="18" />
+                <line x1="-12" y1="28" x2="12" y2="28" />
+              </g>
+              <text x="-38" y="50" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="7.5">02:56:15 UT</text>
+            </g>
+          </svg>
+        `
+      },
+      {
+        id: 6,
+        shortLabel: "06. HOME",
+        chapterTag: "CHAPTER 06 // POST-MISSION",
+        date: "July 21, 17:54 UT – Present",
+        title: "My Boys Brought Me Home",
+        recStatus: "ARCHIVED // EARTH",
+        recActive: false,
+        fps: "00 FPS",
+        missionClock: "GET 124:22:01",
+        prose: [
+          "After 21 hours and 36 minutes on the Moon, the ascent engine lit and Eagle’s lower half became a launchpad, left behind on the Sea of Tranquility forever. Once the crew was back with Columbia, they sealed the hatches and let Eagle’s upper cabin go into empty lunar orbit. The brave little ship that had carried us safely was left to drift alone.",
+          "When the mission ended, I wasn’t placed in a museum. Before Eagle was cast adrift, Neil unmounted me, tucked me into a white cloth stowage bag, and carried me home. I spent over forty years in the quiet dark of his closet. I didn’t mind the silence. I had already seen the greatest view humanity ever captured. I later heard that astronauts weren’t supposed to bring cameras back because of the weight. They were meant to leave the camera body on the Moon and keep only the film. But for whatever reason, they brought me back, My boys brought me back home."
+        ],
+        telemetry: [
+          { label: "LUNAR SURFACE STAY", value: "21 Hours, 36 Minutes" },
+          { label: "ASCENT ENGINE", value: "15,000 N Fixed Thrust" },
+          { label: "LM JETTISON", value: "July 22, 00:01:01 UT" },
+          { label: "PRESERVED ARTIFACT", value: "Maurer 16mm DAC (Smithsonian)" }
+        ],
+        svg: `
+          <svg viewBox="0 0 360 270" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <!-- Subtle Stars -->
+            <g fill="#fde68a" opacity="0.6">
+              <circle cx="52" cy="48" r="1.2" />
+              <circle cx="305" cy="42" r="1.5" />
+              <circle cx="290" cy="195" r="1" />
+              <circle cx="65" cy="210" r="1.2" />
+              <circle cx="180" cy="30" r="1" />
+            </g>
+
+            <!-- White Beta-Cloth Stowage Bag ("McDivitt Purse") -->
+            <g transform="translate(180, 145)">
+              <!-- Bag Body -->
+              <path d="M -68,-35 L 68,-35 L 78,68 Q 78,78 66,78 L -66,78 Q -78,78 -78,68 Z" fill="#1e293b" stroke="#e2e8f0" stroke-width="1.8" />
+              <!-- Open Flap -->
+              <path d="M -68,-35 L -52,-68 L 52,-68 L 68,-35" fill="#0f172a" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="4 2" />
+              <!-- Bag Label Tag -->
+              <rect x="-42" y="46" width="84" height="16" rx="2" fill="#0f172a" stroke="#64748b" stroke-width="1" />
+              <text x="-35" y="57" fill="#cbd5e1" font-family="JetBrains Mono, monospace" font-size="7.5">TEMP STOWAGE BAG</text>
+
+              <!-- Maurer 16mm Data Acquisition Camera Inside -->
+              <g transform="translate(0, -8)">
+                <!-- Camera Body -->
+                <rect x="-34" y="-22" width="54" height="42" rx="4" fill="#334155" stroke="#f59e0b" stroke-width="1.8" />
+                <!-- Film Magazine Top -->
+                <rect x="-28" y="-36" width="42" height="14" rx="3" fill="#1e293b" stroke="#fde68a" stroke-width="1.4" />
+                <!-- 10mm Lens Barrel -->
+                <rect x="20" y="-12" width="18" height="22" rx="2" fill="#0f172a" stroke="#38bdf8" stroke-width="1.6" />
+                <line x1="38" y1="-9" x2="38" y2="7" stroke="#38bdf8" stroke-width="2.5" />
+                <!-- Reel Details -->
+                <circle cx="-14" cy="-1" r="9" fill="none" stroke="#94a3b8" stroke-width="1.2" />
+                <circle cx="5" cy="-1" r="9" fill="none" stroke="#94a3b8" stroke-width="1.2" />
+              </g>
+            </g>
+
+            <text x="112" y="248" fill="#fde68a" font-family="JetBrains Mono, monospace" font-size="8.5" font-weight="bold">ARTIFACT RECOVERED // EARTH</text>
+          </svg>
+        `
+      }
+    ];
+
+    // State
+    let currentIndex = 0;
+    let isFullStoryMode = false;
+    let audioEnabled = false;
+    let audioCtx = null;
+
+    // Synthesize a gentle 16mm mechanical camera shutter click via Web Audio API
+    function playShutterSound() {
+      if (!audioEnabled) return;
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+
+        const now = audioCtx.currentTime;
+
+        // First mechanical blade click
+        const osc1 = audioCtx.createOscillator();
+        const gain1 = audioCtx.createGain();
+        osc1.type = 'triangle';
+        osc1.frequency.setValueAtTime(1150, now);
+        osc1.frequency.exponentialRampToValueAtTime(180, now + 0.028);
+
+        gain1.gain.setValueAtTime(0.14, now);
+        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+
+        osc1.connect(gain1);
+        gain1.connect(audioCtx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.032);
+
+        // Second shutter curtain return click (35ms later)
+        const osc2 = audioCtx.createOscillator();
+        const gain2 = audioCtx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(880, now + 0.035);
+        osc2.frequency.exponentialRampToValueAtTime(140, now + 0.065);
+
+        gain2.gain.setValueAtTime(0.1, now + 0.035);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.068);
+
+        osc2.connect(gain2);
+        gain2.connect(audioCtx.destination);
+        osc2.start(now + 0.035);
+        osc2.stop(now + 0.07);
+      } catch (err) {
+        console.warn('Web Audio API unavailable:', err);
+      }
+    }
+
+    // Toggle Audio SFX
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      const indicator = document.getElementById('audioIndicator');
+      const label = document.getElementById('audioLabel');
+      if (audioEnabled) {
+        indicator.classList.remove('bg-slate-500');
+        indicator.classList.add('bg-amber-400', 'shadow-[0_0_8px_#f59e0b]');
+        label.textContent = 'SHUTTER SFX: ON';
+        playShutterSound();
+      } else {
+        indicator.classList.remove('bg-amber-400', 'shadow-[0_0_8px_#f59e0b]');
+        indicator.classList.add('bg-slate-500');
+        label.textContent = 'SHUTTER SFX: OFF';
+      }
+    }
+
+    // Toggle between Interactive Chapter View and Full Story Reading Mode
+    function toggleReadingMode() {
+      isFullStoryMode = !isFullStoryMode;
+      const interactiveView = document.getElementById('interactiveView');
+      const fullStoryView = document.getElementById('fullStoryView');
+      const timelineNav = document.getElementById('timelineNav');
+      const modeLabel = document.getElementById('modeLabel');
+
+      playShutterSound();
+
+      if (isFullStoryMode) {
+        interactiveView.classList.add('hidden');
+        timelineNav.classList.add('hidden');
+        fullStoryView.classList.remove('hidden');
+        fullStoryView.classList.add('animate-frame');
+        modeLabel.textContent = 'VIEWFINDER MODE';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        fullStoryView.classList.add('hidden');
+        interactiveView.classList.remove('hidden');
+        timelineNav.classList.remove('hidden');
+        modeLabel.textContent = 'FULL STORY MODE';
+        renderChapter(currentIndex, false);
+      }
+    }
+
+    // Render Timeline Step Buttons
+    function renderTimeline() {
+      const container = document.getElementById('timelineSteps');
+      container.innerHTML = chapters
+        .map((ch, idx) => {
+          const isActive = idx === currentIndex;
+          const isPast = idx < currentIndex;
+          return `
+            <button
+              type="button"
+              onclick="goToChapter(${idx})"
+              class="text-left px-2.5 py-1.5 rounded-lg border transition font-mono text-[11px] truncate cursor-pointer ${
+                isActive
+                  ? 'bg-amber-500/20 border-amber-400 text-parchment font-semibold shadow-sm'
+                  : isPast
+                  ? 'bg-slate-900/70 border-amber-500/30 text-amber-300/80 hover:border-amber-400/60'
+                  : 'bg-slate-950/60 border-slate-800 text-slate-500 hover:text-slate-300 hover:border-slate-700'
+              }"
+            >
+              ${ch.shortLabel}
+            </button>
+          `;
+        })
+        .join('');
+    }
+
+    // Render Active Chapter
+    function renderChapter(index, triggerSound = true) {
+      const ch = chapters[index];
+      if (!ch) return;
+
+      if (triggerSound) {
+        playShutterSound();
+      }
+
+      // Re-trigger subtle frame transition animation
+      const container = document.getElementById('chapterContainer');
+      container.classList.remove('animate-frame');
+      void container.offsetWidth; // Force reflow
+      container.classList.add('animate-frame');
+
+      // Update Viewfinder Status
+      document.getElementById('recStatus').textContent = ch.recStatus;
+      const recDot = document.getElementById('recDot');
+      if (ch.recActive) {
+        recDot.className = 'w-2.5 h-2.5 rounded-full bg-red-500 rec-dot';
+      } else {
+        recDot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400/70';
+      }
+      document.getElementById('frameRateBadge').textContent = ch.fps;
+      document.getElementById('missionClock').textContent = ch.missionClock;
+      document.getElementById('svgViewport').innerHTML = ch.svg;
+
+      // Update Telemetry Card
+      document.getElementById('telemetryTag').textContent = `LOG 0${ch.id}/0${chapters.length}`;
+      document.getElementById('telemetryGrid').innerHTML = ch.telemetry
+        .map(
+          (item) => `
+          <div class="bg-slate-950/70 border border-slate-800/90 rounded-lg p-2.5">
+            <dt class="text-[10px] text-slate-400 uppercase tracking-wider mb-0.5">${item.label}</dt>
+            <dd class="text-slate-100 font-medium">${item.value}</dd>
+          </div>
+        `
+        )
+        .join('');
+
+      // Update Narrative Column
+      document.getElementById('chapterNumber').textContent = ch.chapterTag;
+      document.getElementById('chapterDate').textContent = ch.date;
+      document.getElementById('chapterTitle').textContent = ch.title;
+      document.getElementById('chapterProse').innerHTML = ch.prose
+        .map((paragraph) => `<p>${paragraph}</p>`)
+        .join('');
+
+      // Update Navigation Buttons
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const nextBtnLabel = document.getElementById('nextBtnLabel');
+
+      prevBtn.disabled = index === 0;
+      if (index === chapters.length - 1) {
+        nextBtnLabel.textContent = 'RESTART FILM';
+      } else {
+        nextBtnLabel.textContent = 'NEXT CHAPTER';
+      }
+
+      renderTimeline();
+    }
+
+    // Build Full Story Reading Mode DOM once on load
+    function buildFullStory() {
+      const container = document.getElementById('fullStoryContent');
+      container.innerHTML = chapters
+        .map(
+          (ch) => `
+          <section class="space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
+              <span class="font-mono text-xs uppercase tracking-widest text-amber-400">${ch.chapterTag}</span>
+              <span class="font-mono text-xs text-slate-400">${ch.date}</span>
+            </div>
+            <h3 class="font-serif text-2xl font-semibold text-parchment">${ch.title}</h3>
+            <div class="space-y-4 text-slate-200">
+              ${ch.prose.map((p) => `<p>${p}</p>`).join('')}
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 font-mono text-[11px]">
+              ${ch.telemetry
+                .map(
+                  (t) => `
+                  <div class="bg-slate-950/70 border border-slate-800/80 rounded-lg p-2">
+                    <div class="text-[9px] text-slate-500 uppercase">${t.label}</div>
+                    <div class="text-slate-300 truncate" title="${t.value}">${t.value}</div>
+                  </div>
+                `
+                )
+                .join('')}
+            </div>
+          </section>
+        `
+        )
+        .join('');
+    }
+
+    function goToChapter(index) {
+      if (index >= 0 && index < chapters.length) {
+        currentIndex = index;
+        renderChapter(currentIndex, true);
+      }
+    }
+
+    function changeChapter(delta) {
+      if (currentIndex === chapters.length - 1 && delta === 1) {
+        currentIndex = 0;
+      } else {
+        const next = currentIndex + delta;
+        if (next < 0 || next >= chapters.length) return;
+        currentIndex = next;
+      }
+      renderChapter(currentIndex, true);
+    }
+
+    // Keyboard Arrow Navigation
+    document.addEventListener('keydown', (e) => {
+      if (isFullStoryMode) return;
+      if (e.key === 'ArrowRight') {
+        changeChapter(1);
+      } else if (e.key === 'ArrowLeft') {
+        changeChapter(-1);
+      }
+    });
+
+    // Initialize App on Load
+    window.addEventListener('DOMContentLoaded', () => {
+      buildFullStory();
+      renderChapter(0, false);
+    });
+  </script>
+</body>
+</html>
